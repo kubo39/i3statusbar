@@ -1,0 +1,14 @@
+.dub
+docs.json
+__dummy.html
+docs/
+i3statusbar.so
+i3statusbar.dylib
+i3statusbar.dll
+i3statusbar.a
+i3statusbar.lib
+i3statusbar-test-*
+*.exe
+*.o
+*.obj
+*.lst

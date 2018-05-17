@@ -1,0 +1,9 @@
+{
+	"name": "i3statusbar",
+	"authors": [
+		"Hiroki Noda"
+	],
+	"description": "A minimal D application.",
+	"copyright": "Copyright © 2018, Hiroki Noda",
+	"license": "BSL-1.0"
+}

@@ -1,17 +1,19 @@
 /**
-My i3status bar
+My i3status
 
 protocol reference: https://i3wm.org/docs/i3bar-protocol.html
  */
 
 import core.time : seconds;
 import core.thread : Thread;
+
+import std.algorithm : map;
 import std.conv : to;
 import std.file : readText, slurp;
 import std.format : format;
 import std.json : JSONValue, toJSON;
 import std.stdio : writeln;
-import std.string : chop, cmp;
+import std.string : chop, cmp, join;
 
 enum
 {
@@ -48,7 +50,7 @@ JSONValue getBatteryStatus()
         auto minutes = (time * 60).to!ulong;
         auto hours = minutes / 60;
         auto minute = minutes % 60;
-        jj.object["color"] = YELLOW;
+        jj.object["color"] = capacity <= 20 ? RED : YELLOW;
         jj.object["full_text"] = format("Battery: %d h %d min.", hours, minute);
     }
     else // status == "Full"
@@ -56,6 +58,16 @@ JSONValue getBatteryStatus()
         jj.object["color"] = GREEN;
         jj.object["full_text"] = format("Battery: %d%%", capacity);
     }
+    return jj;
+}
+
+JSONValue getDate()
+{
+    import std.datetime : Clock, DateTime;
+    JSONValue jj = [
+        "name": "date",
+        "full_text": (cast(DateTime)Clock.currTime).toSimpleString()
+        ];
     return jj;
 }
 
@@ -69,9 +81,10 @@ void main()
     {
         JSONValue[] entries;
         entries ~= getBatteryStatus();
+        entries ~= getDate();
         writeln("[");
-        foreach (entry; entries)
-            writeln(entry.toJSON);
+        entries.map!(a => a.toJSON)
+            .join(",").writeln;
         writeln("],");
         Thread.sleep(5.seconds);
     }

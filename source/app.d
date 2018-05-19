@@ -42,7 +42,7 @@ JSONValue getBatteryStatus()
     }
 
     auto status = readText("/sys/class/power_supply/BAT0/status").chop();
-    if (status.cmp("Discharging"))
+    if (status.cmp("Discharging") == 0)
     {
         auto time = energyNow.to!double / powerNow.to!double;
         auto minutes = (time * 60).to!ulong;

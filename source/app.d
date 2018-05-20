@@ -12,7 +12,7 @@ import std.conv : to;
 import std.file : readText, slurp;
 import std.format : format;
 import std.json : JSONValue, toJSON;
-import std.stdio : writeln;
+import std.stdio : writefln, writeln;
 import std.string : chop, cmp, join;
 
 enum
@@ -82,10 +82,9 @@ void main()
         JSONValue[] entries;
         entries ~= getBatteryStatus();
         entries ~= getDate();
-        writeln("[");
-        entries.map!(a => a.toJSON)
-            .join(",").writeln;
-        writeln("],");
-        Thread.sleep(5.seconds);
+        writefln(`[
+%s
+],`, entries.map!(a => a.toJSON).join(","));
+        Thread.sleep(1.seconds);
     }
 }

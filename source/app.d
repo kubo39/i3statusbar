@@ -40,7 +40,7 @@ JSONValue getBatteryStatus()
     if (powerNow == 0)
     {
         jj.object["color"] = GREEN;
-        jj.object["full_text"] = format("Battery: %d %% (charging...)", capacity);
+        jj.object["full_text"] = format("\U0001F50B: %d %% (charging...)", capacity);
         return jj;
     }
 
@@ -52,12 +52,12 @@ JSONValue getBatteryStatus()
         auto hours = minutes / 60;
         auto minute = minutes % 60;
         jj.object["color"] = capacity <= 20 ? RED : YELLOW;
-        jj.object["full_text"] = format("Battery: %d h %d min.", hours, minute);
+        jj.object["full_text"] = format("\U0001F50B: %d h %d min.", hours, minute);
     }
     else // status == "Full"
     {
         jj.object["color"] = GREEN;
-        jj.object["full_text"] = format("Battery: %d%%", capacity);
+        jj.object["full_text"] = format("\U0001F50B: %d%%", capacity);
     }
     return jj;
 }

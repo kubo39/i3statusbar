@@ -7,13 +7,14 @@ protocol reference: https://i3wm.org/docs/i3bar-protocol.html
 import core.time : seconds;
 import core.thread : Thread;
 
-import std.algorithm : map;
+import std.algorithm : fold, map, max, min, sum;
 import std.conv : to;
 import std.file : readText, slurp;
 import std.format : format;
 import std.json : JSONValue, toJSON;
+import std.process : pipeProcess, Redirect, wait;
 import std.stdio : writefln, writeln;
-import std.string : chop, cmp, join;
+import std.string : chop, cmp, join, split, startsWith;
 
 enum
 {
@@ -71,6 +72,45 @@ JSONValue getDate()
     return jj;
 }
 
+JSONValue getTemperature()
+{
+    JSONValue jj = ["name": "temperature"];
+
+    auto pipes = pipeProcess(["sensors", "-u"], Redirect.stdout);
+    scope (exit) wait(pipes.pid);
+    long[] temperatures;
+    foreach (line; pipes.stdout.byLine)
+    {
+        if (line.startsWith("  temp"))
+        {
+            auto rest = line[6 .. $]
+                .split("_")
+                .map!(a => a.split(" "))
+                .fold!((a, b) => a ~= b)
+                .map!(a => a.split("."))
+                .fold!((a, b) => a ~= b);
+            if (rest[1].startsWith("input"))
+            {
+                temperatures ~= rest[2].to!long;
+            }
+        }
+    }
+    auto max = temperatures.fold!max();
+    auto min = temperatures.fold!min();
+    auto average = temperatures.sum().to!double / temperatures.length;
+
+    if (max >= 61)
+    {
+        jj["color"] = RED;
+    }
+    else if (max >= 46)
+    {
+        jj["color"] = YELLOW;
+    }
+    jj["full_text"] = format("avg:%.2f\u2103 max:%d\u2103", average, max);
+    return jj;
+}
+
 void main()
 {
     writeln(`{"version": 1}`);
@@ -80,6 +120,7 @@ void main()
     while (true)
     {
         JSONValue[] entries;
+        entries ~= getTemperature();
         entries ~= getBatteryStatus();
         entries ~= getDate();
         writefln(`[

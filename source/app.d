@@ -15,7 +15,7 @@ import std.format : format;
 import std.json : JSONValue, toJSON;
 import std.process : pipeProcess, Redirect, wait;
 import std.range : tail;
-import std.stdio : writefln, writeln;
+import std.stdio : File, writefln, writeln;
 import std.string : chop, cmp, join, split, startsWith, strip;
 
 enum
@@ -143,6 +143,37 @@ JSONValue volumeInfo()
     return jj;
 }
 
+JSONValue wirelessInfo()
+{
+    JSONValue jj = ["name": "wireless"];
+    auto pipes = pipeProcess(["iwgetid", "-r"], Redirect.stdout);
+    scope (exit) wait(pipes.pid);
+    auto ssid = pipes.stdout.readln.chop;
+    if (ssid.length == 0)
+        return jj;
+    foreach (line; File("/proc/net/wireless").byLineCopy())
+    {
+        if (line.startsWith("wlan") || line.startsWith("wlp"))
+        {
+            auto quality = line.split()[2].strip('.').to!uint;
+            if (quality >= 95)
+            {
+                jj["color"] = GREEN;
+            }
+            else if (quality >= 50)
+            {
+                jj["color"] = YELLOW;
+            }
+            else
+            {
+                jj["color"] = RED;
+            }
+            jj["full_text"] = format("\U0001F4F6 %d", quality);
+        }
+    }
+    return jj;
+}
+
 void main()
 {
     writeln(`{"version": 1}`);
@@ -152,6 +183,7 @@ void main()
     while (true)
     {
         JSONValue[] entries;
+        entries ~= wirelessInfo();
         entries ~= temperature();
         entries ~= volumeInfo();
         entries ~= batteryStatus();

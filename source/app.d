@@ -30,7 +30,7 @@ enum
 /**
 battery information: https://www.kernel.org/doc/Documentation/power/power_supply_class.txt
  */
-JSONValue getBatteryStatus()
+JSONValue batteryStatus()
 {
     JSONValue jj = ["name": "battery"];
     auto energyFull = slurp!ulong("/sys/class/power_supply/BAT0/energy_now", "%d")[0];
@@ -64,7 +64,7 @@ JSONValue getBatteryStatus()
     return jj;
 }
 
-JSONValue getDate()
+JSONValue date()
 {
     import std.datetime : Clock, DateTime;
     JSONValue jj = [
@@ -74,7 +74,7 @@ JSONValue getDate()
     return jj;
 }
 
-JSONValue getTemperature()
+JSONValue temperature()
 {
     JSONValue jj = ["name": "temperature"];
 
@@ -113,7 +113,7 @@ JSONValue getTemperature()
     return jj;
 }
 
-JSONValue getVolumeInfo()
+JSONValue volumeInfo()
 {
     JSONValue jj = ["name": "volume"];
 
@@ -152,10 +152,10 @@ void main()
     while (true)
     {
         JSONValue[] entries;
-        entries ~= getTemperature();
-        entries ~= getVolumeInfo();
-        entries ~= getBatteryStatus();
-        entries ~= getDate();
+        entries ~= temperature();
+        entries ~= volumeInfo();
+        entries ~= batteryStatus();
+        entries ~= date();
         writefln(`[
 %s
 ],`, entries.map!(a => a.toJSON).join(","));

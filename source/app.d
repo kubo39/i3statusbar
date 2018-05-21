@@ -156,11 +156,11 @@ JSONValue wirelessInfo()
         if (line.startsWith("wlan") || line.startsWith("wlp"))
         {
             auto quality = line.split()[2].strip('.').to!uint;
-            if (quality >= 95)
+            if (quality >= 70)
             {
                 jj["color"] = GREEN;
             }
-            else if (quality >= 50)
+            else if (quality >= 40)
             {
                 jj["color"] = YELLOW;
             }

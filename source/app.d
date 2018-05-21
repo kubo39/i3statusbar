@@ -7,14 +7,16 @@ protocol reference: https://i3wm.org/docs/i3bar-protocol.html
 import core.time : seconds;
 import core.thread : Thread;
 
-import std.algorithm : fold, map, max, min, sum;
+import std.algorithm : canFind, filter, fold, map, max, min, strip, sum;
+import std.array : array;
 import std.conv : to;
 import std.file : readText, slurp;
 import std.format : format;
 import std.json : JSONValue, toJSON;
 import std.process : pipeProcess, Redirect, wait;
+import std.range : tail;
 import std.stdio : writefln, writeln;
-import std.string : chop, cmp, join, split, startsWith;
+import std.string : chop, cmp, join, split, startsWith, strip;
 
 enum
 {
@@ -111,6 +113,36 @@ JSONValue getTemperature()
     return jj;
 }
 
+JSONValue getVolumeInfo()
+{
+    JSONValue jj = ["name": "volume"];
+
+    auto pipes = pipeProcess(["amixer", "get", "Master"], Redirect.stdout);
+    scope (exit) wait(pipes.pid);
+    auto arr = pipes.stdout()
+        .byLineCopy()
+        .map!(a => a.strip())
+        .array()
+        .tail(1)[0]
+        .split()
+        .filter!(a => a.startsWith('[') && !a.canFind("dB"))
+        .map!(a => a.strip!(a => a == '[' || a == ']'))
+        .array();
+    auto currVolume = arr[0].strip('%').to!uint;
+    auto isMute = arr[1] == "off";
+
+    if (isMute)
+    {
+        jj["color"] = YELLOW;
+        jj["full_text"] = "\U0001F507";
+    }
+    else
+    {
+        jj["full_text"] = format("\U0001F508: %d%%", currVolume);
+    }
+    return jj;
+}
+
 void main()
 {
     writeln(`{"version": 1}`);
@@ -121,6 +153,7 @@ void main()
     {
         JSONValue[] entries;
         entries ~= getTemperature();
+        entries ~= getVolumeInfo();
         entries ~= getBatteryStatus();
         entries ~= getDate();
         writefln(`[

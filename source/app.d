@@ -150,7 +150,10 @@ JSONValue wirelessInfo()
     scope (exit) wait(pipes.pid);
     auto ssid = pipes.stdout.readln.chop;
     if (ssid.length == 0)
+    {
+        jj["full_text"] = "NO LAN!";
         return jj;
+    }
     foreach (line; File("/proc/net/wireless").byLineCopy())
     {
         if (line.startsWith("wlan") || line.startsWith("wlp"))
